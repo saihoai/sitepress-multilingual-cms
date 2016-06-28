@@ -365,7 +365,7 @@ For each language, you need to enter the following information:
 			$flag = $sitepress->get_flag($lang['code']);
 			$this->active_languages[$lang['code']]['flag'] = $flag->flag;
 			$this->active_languages[$lang['code']]['from_template'] = $flag->from_template;
-			$this->active_languages[$lang['code']]['default_locale'] = $wpdb->get_var("SELECT default_locale FROM {$wpdb->prefix}icl_languages WHERE code='".$lang['code']."'");
+			$this->active_languages[$lang['code']]['default_locale'] = $wpdb->get_var( $wpdb->prepare( "SELECT default_locale FROM {$wpdb->prefix}icl_languages WHERE code=%s", $lang['code'] ) );
             $this->active_languages[$lang['code']]['encode_url'] = $lang['encode_url'];
             $this->active_languages[$lang['code']]['tag'] = $lang['tag'];
 		}

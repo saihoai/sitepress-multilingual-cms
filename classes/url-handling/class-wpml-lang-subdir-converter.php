@@ -11,6 +11,10 @@ class WPML_Lang_Subdir_Converter extends WPML_URL_Converter {
 	/** @var string */
 	private $root_url;
 
+	/** @var array map of wpml codes to custom codes*/
+	private $language_codes_map = array();
+	private $language_codes_reverse_map = array();
+
 	/**
 	 * WPML_Lang_Subdir_Converter constructor.
 	 *
@@ -27,6 +31,14 @@ class WPML_Lang_Subdir_Converter extends WPML_URL_Converter {
 		parent::__construct( $default_language, $active_languages );
 		$this->dir_default   = $dir_default;
 		$this->urls_settings = $urls_settings;
+
+		foreach ( $active_languages as $language ) {
+			$this->language_codes_map[ $language ] = $language;
+		}
+		$this->language_codes_map = apply_filters( 'wpml_language_codes_map', $this->language_codes_map );
+		foreach ( $this->language_codes_map as $wpml_code => $custom_code ) {
+			$this->language_codes_reverse_map[ $custom_code ] = $wpml_code;
+		}
 	}
 
 	protected function get_lang_from_url_string( $url ) {
@@ -51,6 +63,8 @@ class WPML_Lang_Subdir_Converter extends WPML_URL_Converter {
 		$lang_get_parts = explode( '?', $lang );
 		$lang           = $lang_get_parts[ 0 ];
 
+		$lang           = isset( $this->language_codes_reverse_map[ $lang ] ) ? $this->language_codes_reverse_map[ $lang ] : $lang;
+
 		return $lang && in_array ( $lang, $this->active_languages )
 			? $lang : ( $this->dir_default ? null : $this->default_language );
 	}
@@ -73,6 +87,10 @@ class WPML_Lang_Subdir_Converter extends WPML_URL_Converter {
 			$current_language  = $this->get_lang_from_url_string( $source_url );
 			$current_language  = ! $this->dir_default && $current_language === $this->default_language ? '' : $current_language;
 			$absolute_home_url = strpos( $source_url, $absolute_home_url ) === false ? trailingslashit( get_option( 'home' ) ) : $absolute_home_url;
+
+			$code             = isset( $this->language_codes_map[ $code ] ) ? $this->language_codes_map[ $code ] : $code;
+			$current_language = isset( $this->language_codes_map[ $current_language ] ) ? $this->language_codes_map[ $current_language ] : $current_language;
+			
 			$source_url        = str_replace(
 				trailingslashit( $absolute_home_url . $current_language ),
 				$code ? ( $absolute_home_url . $code . '/' ) : trailingslashit( $absolute_home_url ),

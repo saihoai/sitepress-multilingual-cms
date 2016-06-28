@@ -47,17 +47,18 @@ class WPML_Term_Actions extends WPML_Full_Translation_API {
 				$translations                = $this->sitepress->get_element_translations( $trid, $icl_el_type );
 				$this->delete_recursion_flag = true;
 				// delete translations
+				remove_filter( 'get_term', array( $this->sitepress, 'get_term_adjust_id' ), 1 );
 				foreach ( $translations as $translation ) {
-					if ( $translation->element_id != $tt_id ) {
+					if ( (int) $translation->element_id !== (int) $tt_id ) {
 						wp_delete_term( $translation->term_id, $taxonomy );
 					}
 				}
+				add_filter( 'get_term', array( $this->sitepress, 'get_term_adjust_id' ), 1, 1 );
 				$this->delete_recursion_flag = false;
 			}
 		}
 
-		$this->wpdb->delete( $this->wpdb->prefix . 'icl_translations',
-		                     array( 'element_type' => $icl_el_type, 'element_id' => $tt_id ) );
+		$this->wpdb->delete( $this->wpdb->prefix . 'icl_translations', array( 'element_type' => $icl_el_type, 'element_id' => $tt_id ) );
 	}
 
 	/**
