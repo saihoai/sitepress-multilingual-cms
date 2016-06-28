@@ -642,7 +642,12 @@ class SitePress extends WPML_WPDB_User{
 				case 'post':
 				case 'page':
 					add_filter ( 'manage_' . $post_type . 's_columns', array( $this, 'add_posts_management_column' ) );
-					add_filter ( 'manage_' . $post_type . 's_custom_column', array( $this, 'add_content_for_posts_management_column' ) );
+					if ( $this->show_management_column_content( $post_type ) ) {
+						add_filter( 'manage_' . $post_type . 's_custom_column', array(
+							$this,
+							'add_content_for_posts_management_column'
+						) );
+					}
 					break;
 				default:
 					if ( in_array ( $post_type, array_keys ( $this->get_translatable_documents () ), true ) ) {
@@ -651,23 +656,48 @@ class SitePress extends WPML_WPDB_User{
 							array( $this, 'add_posts_management_column' )
 						);
 						if ( $wp_post_types[ $post_type ]->hierarchical ) {
-							add_action (
-								'manage_pages_custom_column',
-								array( $this, 'add_content_for_posts_management_column' )
-							);
-							add_action (
-								'manage_posts_custom_column',
-								array( $this, 'add_content_for_posts_management_column' )
-							); // add this too - for more types plugin
+							if ( $this->show_management_column_content( $post_type ) ) {
+								add_action(
+									'manage_pages_custom_column',
+									array( $this, 'add_content_for_posts_management_column' )
+								);
+								add_action(
+									'manage_posts_custom_column',
+									array( $this, 'add_content_for_posts_management_column' )
+								); // add this too - for more types plugin
+							}
 						} else {
-							add_action (
-								'manage_posts_custom_column',
-								array( $this, 'add_content_for_posts_management_column' )
-							);
+							if ( $this->show_management_column_content( $post_type ) ) {
+								add_action (
+									'manage_posts_custom_column',
+									array( $this, 'add_content_for_posts_management_column' )
+								);
+							}
 						}
 					}
 			}
 		}
+	}
+
+	/**
+	 * Check translation mangement column screen option.
+	 *
+	 * @param string $post_type Current post type.
+	 *
+	 * @return bool
+	 */
+	public function show_management_column_content( $post_type ) {
+		$user = get_current_user_id();
+		$hidden_columns = get_user_meta( $user, 'manageedit-' . $post_type . 'columnshidden', true );
+		if ( '' === $hidden_columns ) {
+			$is_visible = (bool) apply_filters( 'wpml_hide_management_column', true, $post_type );
+			if ( false === $is_visible ) {
+				update_user_meta( $user, 'manageedit-' . $post_type . 'columnshidden', array( 'icl_translations' ) );
+			}
+			return $is_visible;
+		}
+
+		return ! in_array( 'icl_translations', $hidden_columns );
 	}
 
 	function the_posts( $posts ) {
@@ -3889,7 +3919,9 @@ class SitePress extends WPML_WPDB_User{
 	function  save_user_options() {
 		$user_id = $_POST[ 'user_id' ];
 		if ( $user_id ) {
-			update_user_meta( $user_id, 'icl_admin_language', $_POST[ 'icl_user_admin_language' ] );
+			if ( $this->get_wp_api()->is_admin() ) {
+				update_user_meta( $user_id, 'icl_admin_language', $_POST['icl_user_admin_language'] );
+			}
 			update_user_meta( $user_id, 'icl_show_hidden_languages', isset( $_POST['icl_show_hidden_languages'] ) ? (int) $_POST['icl_show_hidden_languages'] : 0 );
 			update_user_meta( $user_id, 'icl_admin_language_for_edit', isset( $_POST['icl_admin_language_for_edit'] ) ? (int) $_POST['icl_admin_language_for_edit'] : 0 );
 			$this->reset_admin_language_cookie();
@@ -3924,7 +3956,6 @@ class SitePress extends WPML_WPDB_User{
 
 	function add_posts_management_column( $columns ) {
 		$new_columns = $columns;
-
 		global $posts;
 		if ( count( $this->get_active_languages() ) <= 1 || get_query_var( 'post_status' ) === 'trash' ) {
 			return $columns;
@@ -4181,7 +4212,7 @@ class SitePress extends WPML_WPDB_User{
 
 	function xmlrpc_get_languages_list( $lang ) {
 		if ( !is_null( $lang ) ) {
-			if ( !$this->wpdb->get_var( "SELECT code FROM {$this->wpdb->prefix}icl_languages WHERE code='" . esc_sql( $lang ) . "'" ) ) {
+			if ( !$this->wpdb->get_var( $this->wpdb->prepare("SELECT code FROM {$this->wpdb->prefix}icl_languages WHERE code=%s", $lang) ) ) {
 				$IXR_Error = new IXR_Error( 401, __( 'Invalid language code', 'sitepress' ) );
 				echo $IXR_Error->getXml();
 				exit( 1 );
