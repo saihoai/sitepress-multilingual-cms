@@ -1,3 +1,15 @@
+# 3.4.1
+
+## Fixes
+* [wpmlcore-3030] Class auto loading is not compatible with version of PHP older than 5.3
+* [wpmlcore-3034] Fix missing slash at the end of alternatives links 
+* [wpmlcore-3076] Updating forum user profile when using bbPress, or in general, when a user profile happens from the front-end, won't throw any notice
+
+## Performances
+* [wpmlga-133] Improved class autoloading by using class mapping, instead of file system lookup
+* [wpmlcore-3026] If translation management column is hidden from screen options don't run additional queries.
+* [wpmlcore-3053] Added filter `wpml_hide_management_column` to allow hiding of translation management column.
+
 # 3.4.0
 
 ## Fixes
