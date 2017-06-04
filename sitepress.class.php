@@ -184,12 +184,6 @@ class SitePress extends WPML_WPDB_User{
 
 			add_action( 'restrict_manage_posts', array( $this, 'restrict_manage_posts' ) );
 
-			// adjacent posts links
-			add_filter( 'get_previous_post_join', array( $this, 'get_adjacent_post_join' ) );
-			add_filter( 'get_next_post_join', array( $this, 'get_adjacent_post_join' ) );
-			add_filter( 'get_previous_post_where', array( $this, 'get_adjacent_post_where' ) );
-			add_filter( 'get_next_post_where', array( $this, 'get_adjacent_post_where' ) );
-
 			// feeds links
 			add_filter( 'feed_link', array( $this, 'feed_link' ) );
 
@@ -3291,50 +3285,6 @@ class SitePress extends WPML_WPDB_User{
 		return $catlink;
 	}
 
-	// adjacent posts links
-	function get_adjacent_post_join( $join ) {
-		$post_type = get_query_var( 'post_type' );
-		$cache_key = md5( wp_json_encode( array( $post_type, $join ) ) );
-		$cache_group = 'adjacent_post_join';
-
-		$temp_join = wp_cache_get( $cache_key, $cache_group );
-		if ( $temp_join ) {
-			return $temp_join;
-		}
-
-		if ( !$post_type ) {
-			$post_type = 'post';
-		}
-		if ( $this->is_translated_post_type( $post_type ) ) {
-			$join .= $this->wpdb->prepare(" JOIN {$this->wpdb->prefix}icl_translations t
-                                        ON t.element_id = p.ID AND t.element_type = %s",
-                                    'post_' . $post_type );
-		}
-		wp_cache_set( $cache_key, $join, $cache_group );
-
-		return $join;
-	}
-
-	function get_adjacent_post_where( $where ) {
-		$post_type = get_query_var( 'post_type' );
-		$cache_key   = md5(wp_json_encode( array( $post_type, $where ) ) );
-		$cache_group = 'adjacent_post_where';
-		$temp_where = wp_cache_get( $cache_key, $cache_group );
-		if ( $temp_where ) {
-			return $temp_where;
-		}
-		if ( !$post_type ) {
-			$post_type = 'post';
-		}
-		if ( $this->is_translated_post_type( $post_type ) ) {
-			$where .= " AND language_code = '" . esc_sql( $this->this_lang ) . "'";
-		}
-		wp_cache_set( $cache_key, $where, $cache_group );
-
-		return $where;
-
-	}
-
 	// feeds links
 	function feed_link( $out ) {
 		return $this->convert_url( $out );
@@ -4333,12 +4283,13 @@ class SitePress extends WPML_WPDB_User{
 
 		parse_str ( $query, $vars );
 
-		$post_id = null;
-		if ( isset( $vars['page_id'] ) ) {
-			$inurl = 'page_id';
-		} elseif ( isset( $vars['p'] ) ) {
-			$inurl = 'p';
-		}
+	  $post_id = null;
+	  $inurl   = null;
+	  if ( isset( $vars['page_id'] ) ) {
+		  $inurl = 'page_id';
+	  } elseif ( isset( $vars['p'] ) ) {
+		  $inurl = 'p';
+	  }
 
 		if ( $inurl ) {
 			$post_id = $vars[ $inurl ];

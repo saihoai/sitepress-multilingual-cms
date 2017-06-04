@@ -78,7 +78,7 @@ class WPML_Taxonomy_Translation_Help_Notice {
 		$taxonomy = false;
 		if ( array_key_exists( 'taxonomy', $_GET )
 		     && ! empty( $_GET['taxonomy'] )
-			&& $this->is_translatable_taxonomy( $_GET['taxonomy'] )
+		     && $this->is_translatable_taxonomy( $_GET['taxonomy'] )
 		) {
 			$taxonomy = get_taxonomy( $_GET['taxonomy'] );
 		}
@@ -160,8 +160,21 @@ class WPML_Taxonomy_Translation_Help_Notice {
 		}
 	}
 
+	/**
+	 * @param string $taxonomy
+	 *
+	 * @return bool
+	 */
 	private function is_translatable_taxonomy( $taxonomy ) {
-		$translatable_taxonomies = $this->sitepress->get_translatable_taxonomies( true );
-		return in_array( $taxonomy, $translatable_taxonomies );
+		$is_translatable = false;
+
+		$taxonomy_object = get_taxonomy( $taxonomy );
+		if( $taxonomy_object ){
+			$post_type = isset( $taxonomy_object->object_type[0] ) ? $taxonomy_object->object_type[0] : 'post';
+			$translatable_taxonomies = $this->sitepress->get_translatable_taxonomies( true, $post_type );
+			$is_translatable = in_array( $taxonomy, $translatable_taxonomies );
+		}
+
+		return $is_translatable;
 	}
 }

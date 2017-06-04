@@ -2,10 +2,10 @@
 /*
 Plugin Name: WPML Multilingual CMS
 Plugin URI: https://wpml.org/
-Description: WPML Multilingual CMS | <a href="https://wpml.org">Documentation</a> | <a href="https://wpml.org/version/wpml-3-7-0/">WPML 3.7.0 release notes</a>
+Description: WPML Multilingual CMS | <a href="https://wpml.org">Documentation</a> | <a href="https://wpml.org/version/wpml-3-7-1/">WPML 3.7.1 release notes</a>
 Author: OnTheGoSystems
 Author URI: http://www.onthegosystems.com/
-Version: 3.7.0
+Version: 3.7.1
 Plugin Slug: sitepress-multilingual-cms
 */
 
@@ -16,7 +16,7 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) || ( (bool) get_option( '_wpml_inactive'
 		return;
 }
 
-define( 'ICL_SITEPRESS_VERSION', '3.7.0' );
+define( 'ICL_SITEPRESS_VERSION', '3.7.1' );
 
 // Do not uncomment the following line!
 // If you need to use this constant, use it in the wp-config.php file
@@ -152,6 +152,7 @@ $sitepress = new SitePress();
 if ( $sitepress->is_setup_complete() ) {
 	$actions = array(
 		'WPML_Copy_Once_Custom_Field_Factory',
+		'WPML_Adjacent_Links_Hooks_Factory',
 	);
 	$action_filter_loader = new WPML_Action_Filter_Loader();
 	$action_filter_loader->load( $actions );

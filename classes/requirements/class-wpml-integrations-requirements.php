@@ -212,9 +212,11 @@ class WPML_Integrations_Requirements {
 	 * @param WPML_WP_API $wp_api
 	 */
 	private function add_callbacks( WPML_Notice $notice, WPML_WP_API $wp_api ) {
-		$notice->add_display_callback( array( $wp_api, 'is_core_page' ) );
-		$notice->add_display_callback( array( $wp_api, 'is_plugins_page' ) );
-		$notice->add_display_callback( array( $wp_api, 'is_themes_page' ) );
+		if ( method_exists( $notice, 'add_display_callback' ) ) {
+			$notice->add_display_callback( array( $wp_api, 'is_core_page' ) );
+			$notice->add_display_callback( array( $wp_api, 'is_plugins_page' ) );
+			$notice->add_display_callback( array( $wp_api, 'is_themes_page' ) );
+		}
 	}
 
 	/**
